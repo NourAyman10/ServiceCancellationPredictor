@@ -18,7 +18,7 @@ class Screen:
 
         self.main_frame = tk.Frame(self.root, borderwidth=0, background='#191142')
 
-        self.image_label = tk.Label(self.main_frame, image="", borderwidth=0)
+        self.image_label = tk.Label(self.main_frame, image="", borderwidth=0, background='#191142')
 
         self.logo = Image.open("Photos/logo.png")
         self.logoImage = ImageTk.PhotoImage(self.logo)
@@ -29,9 +29,9 @@ class Screen:
         self.loadingLabel = Label(self.root, image=self.loadingImage, background='#191142')
 
         self.backgroundLabel.place(x=0, y=0)
-        self.main_frame.place(anchor='center', relx=0.5, rely=0.5)
+        self.main_frame.place(anchor='center', relx=0.5, rely=0.45)
         self.logoLabel.place(anchor='center', relx=0.5, y=100)
-        self.loadingLabel.place(anchor='center', relx=0.5, rely=0.88)
+        self.loadingLabel.place(anchor='center', relx=0.5, rely=0.87)
         self.image_label.pack()
 
         os.mkdir("gif_frames")
@@ -43,7 +43,7 @@ class Screen:
         self.root.mainloop()
 
     def animation(self):
-        gif = Image.open("Photos/animationPhoto.gif")
+        gif = Image.open("Photos/gif1.gif")
         self.no_of_frames = gif.n_frames
 
         for i in range(self.no_of_frames):
@@ -53,7 +53,7 @@ class Screen:
 
         for images in self.gif_frames:
             im = Image.open(images)
-            im = im.resize((900, 750), Image.Resampling.LANCZOS)
+            im = im.resize((800, 650), Image.Resampling.LANCZOS)
             im = ImageTk.PhotoImage(im)
             self.images.append(im)
 
@@ -65,9 +65,9 @@ class Screen:
         count += 1
         if count == len(self.images) - 1:
             count = 0
-        if (time.time() - self.start) <= 7:
-            self.x = self.root.after(80, self.show_animation, count)
-        elif (time.time() - self.start) > 7:
+        if (time.time() - self.start) <= 5:
+            self.x = self.root.after(15, self.show_animation, count)
+        elif (time.time() - self.start) > 5:
             self.root.destroy()
             shutil.rmtree('gif_frames')
             Home()

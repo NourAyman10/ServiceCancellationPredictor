@@ -1,12 +1,19 @@
+import pathlib
+import random
 from tkinter import *
 from tkinter import ttk
+import pandas as pd
 from PIL import ImageTk, Image
+import csv
+
+from logisticRegressionClass import LogisticRegression, LogisticRegressionClass
 
 
 class Home:
     def __init__(self):
         self.mainColor = '#191142'
         self.foregroundColor = '#8AD7FF'
+        self.data_frame = pd.read_csv('Data.csv')
 
         self.root = Tk()
         self.root.title("Service cancellation predictor")
@@ -26,39 +33,79 @@ class Home:
         self.frame = Frame(self.root, background=self.mainColor, padx=30, pady=30)
 
         # variables to get data from user
-        self.methodology = StringVar(value="none")
+        self.methodologyValue = StringVar(value="none")
 
-        self.customerIDValue = StringVar()
-        self.genderValue = StringVar()
-        self.seniorCitizenValue = StringVar()
+        self.genderValue = IntVar()
+        self.seniorCitizenValue = IntVar()
 
-        self.partnerValue = StringVar()
-        self.dependentsValue = StringVar()
-        self.tenureValue = StringVar()
+        self.partnerValue = IntVar()
+        self.dependentsValue = IntVar()
+        self.tenureValue = IntVar()
 
-        self.phoneServiceValue = StringVar()
-        self.multipleLinesValue = StringVar()
-        self.internetServiceValue = StringVar()
+        self.phoneServiceValue = IntVar()
+        self.multipleLinesValue = IntVar()
+        self.internetServiceValue = IntVar()
 
-        self.onlineSecurityValue = StringVar()
-        self.onlineBackupValue = StringVar()
-        self.deviceProtectionValue = StringVar()
+        self.onlineSecurityValue = IntVar()
+        self.onlineBackupValue = IntVar()
+        self.deviceProtectionValue = IntVar()
 
-        self.techSupportValue = StringVar()
-        self.streamingTVValue = StringVar()
-        self.streamingMoviesValue = StringVar()
+        self.techSupportValue = IntVar()
+        self.streamingTVValue = IntVar()
+        self.streamingMoviesValue = IntVar()
 
-        self.contractValue = StringVar()
-        self.paperlessBillingValue = StringVar()
-        self.paymentMethodValue = StringVar()
+        self.contractValue = IntVar()
+        self.paperlessBillingValue = IntVar()
+        self.paymentMethodValue = IntVar()
 
-        self.monthlyChargesValue = StringVar()
-        self.totalChargesValue = StringVar()
+        self.monthlyChargesValue = IntVar()
+        self.totalChargesValue = IntVar()
+
+        # save data in file
+        def save():
+            row = [[random.randint(7043, 9000),
+                    self.genderValue.get(),
+                    self.seniorCitizenValue.get(),
+
+                    self.partnerValue.get(),
+                    self.dependentsValue.get(),
+                    self.tenureValue.get(),
+
+                    self.phoneServiceValue.get(),
+                    self.multipleLinesValue.get(),
+                    self.internetServiceValue.get(),
+
+                    self.onlineSecurityValue.get(),
+                    self.onlineBackupValue.get(),
+                    self.deviceProtectionValue.get(),
+
+                    self.techSupportValue.get(),
+                    self.streamingTVValue.get(),
+                    self.streamingMoviesValue.get(),
+
+                    self.contractValue.get(),
+                    self.paperlessBillingValue.get(),
+                    self.paymentMethodValue.get(),
+
+                    self.monthlyChargesValue.get(),
+                    self.totalChargesValue.get()]]
+
+            # file = pathlib.Path("Data.csv")
+            with open("Data.csv", 'a') as file:
+                csvwriter = csv.writer(file)
+                csvwriter.writerows(row)
+            file.close()
+
+        def predict_data():
+            print("prd")
+
+        def test_data():
+            if self.methodologyValue.get() == "Logistic Regression":
+                LogisticRegressionClass.Sctatter_plot(self)
+                LogisticRegressionClass.train(self)
+
 
         # labels
-        self.customerID = PhotoImage(file="Photos/Labels/customerID.png")
-        self.customerIDLabel = ttk.Label(self.frame, image=self.customerID)
-
         self.gender = PhotoImage(file="Photos/Labels/gender.png")
         self.genderLabel = ttk.Label(self.frame, image=self.gender)
 
@@ -118,26 +165,25 @@ class Home:
 
         # Radio buttons
         self.logisticRegressionImage = PhotoImage(file="Photos/Labels/Logistic Regression.png")
-        self.logisticRegressionRadioButton = Radiobutton(self.frame, variable=self.methodology,
-                                                         value="logistic Regression", background=self.mainColor,
+        self.logisticRegressionRadioButton = Radiobutton(self.frame, variable=self.methodologyValue,
+                                                         value="Logistic Regression", background=self.mainColor,
                                                          image=self.logisticRegressionImage)
 
         self.SVMImage = PhotoImage(file="Photos/Labels/SVM.png")
-        self.SVMRadioButton = Radiobutton(self.frame, variable=self.methodology,
+        self.SVMRadioButton = Radiobutton(self.frame, variable=self.methodologyValue,
                                           value="SVM", background=self.mainColor, image=self.SVMImage)
 
         self.ID3Image = PhotoImage(file="Photos/Labels/ID3.png")
-        self.ID3RadioButton = Radiobutton(self.frame, variable=self.methodology,
+        self.ID3RadioButton = Radiobutton(self.frame, variable=self.methodologyValue,
                                           value="ID3", background=self.mainColor, image=self.ID3Image)
 
         self.KNNImage = PhotoImage(file="Photos/Labels/KNN.png")
-        self.KNNRadioButton = Radiobutton(self.frame, variable=self.methodology,
+        self.KNNRadioButton = Radiobutton(self.frame, variable=self.methodologyValue,
                                           value="KNN", background=self.mainColor, image=self.KNNImage)
 
         # set background to Entries and place it
         self.Entry_back = PhotoImage(file="Photos/RectangleEntry.png")
 
-        Label(self.frame, image=self.Entry_back, bg=self.mainColor).grid(row=4, column=1)
         Label(self.frame, image=self.Entry_back, bg=self.mainColor).grid(row=4, column=3)
         Label(self.frame, image=self.Entry_back, bg=self.mainColor).grid(row=4, column=5)
 
@@ -165,8 +211,6 @@ class Home:
         Label(self.frame, image=self.Entry_back, bg=self.mainColor).grid(row=10, column=3)
 
         # Entries
-        self.customerIDEntry = Entry(self.frame, width=14, font=("arial", 14), bd=0, textvariable=self.customerIDValue,
-                                     background=self.mainColor, foreground=self.foregroundColor)
         self.genderEntry = Entry(self.frame, width=14, font=("arial", 14), bd=0, textvariable=self.genderValue,
                                  background=self.mainColor,
                                  foreground=self.foregroundColor)
@@ -236,11 +280,11 @@ class Home:
 
         self.test_button_back = PhotoImage(file="Photos/Buttons/testButton.png")
         self.testButton = Button(self.frame, image=self.test_button_back, borderwidth=0, cursor="hand2", bd=0,
-                                 background=self.mainColor)
+                                 background=self.mainColor, command=test_data)
 
         self.predict_button_back = PhotoImage(file="Photos/Buttons/predictButton.png")
         self.predictButton = Button(self.frame, image=self.predict_button_back, borderwidth=0, cursor="hand2", bd=0,
-                                    background=self.mainColor, anchor='center')
+                                    background=self.mainColor, anchor='center', command=predict_data)
 
         self.close_button_back = PhotoImage(file="Photos/Buttons/closeButton.png")
         self.closeButton = Button(self.frame, image=self.close_button_back, borderwidth=0, cursor="hand2", bd=0,
@@ -265,7 +309,6 @@ class Home:
 
         self.margin.grid(row=3, columnspan=6)
 
-        self.customerIDLabel.grid(row=4, column=0)
         self.genderLabel.grid(row=4, column=2)
         self.seniorCitizenLabel.grid(row=4, column=4)
 
@@ -292,7 +335,6 @@ class Home:
         self.monthlyChargesLabel.grid(row=10, column=0)
         self.totalChargesLabel.grid(row=10, column=2)
         #############################################
-        self.customerIDEntry.grid(row=4, column=1)
         self.genderEntry.grid(row=4, column=3)
         self.seniorCitizenEntry.grid(row=4, column=5)
 
