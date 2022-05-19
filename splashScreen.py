@@ -17,7 +17,6 @@ class Screen:
         self.backgroundLabel = Label(self.root, image=self.backgroundImage)
 
         self.main_frame = tk.Frame(self.root, borderwidth=0, background='#191142')
-
         self.image_label = tk.Label(self.main_frame, image="", borderwidth=0, background='#191142')
 
         self.logo = Image.open("Photos/logo.png")
@@ -65,9 +64,9 @@ class Screen:
         count += 1
         if count == len(self.images) - 1:
             count = 0
-        if (time.time() - self.start) <= 5:
+        if (time.time() - self.start) <= 15:
             self.x = self.root.after(15, self.show_animation, count)
-        elif (time.time() - self.start) > 5:
+        elif (time.time() - self.start) > 15:
             self.root.destroy()
             shutil.rmtree('gif_frames')
             Home()
