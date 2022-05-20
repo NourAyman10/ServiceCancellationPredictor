@@ -1,10 +1,10 @@
-import pathlib
-import random
 from tkinter import *
 from tkinter import ttk
 import pandas as pd
 from PIL import ImageTk, Image
 import csv
+
+from SVMClass import SVMClass
 from logisticRegressionClass import LogisticRegressionClass
 
 
@@ -21,6 +21,9 @@ class Home:
         # general style for all labels
         self.style = ttk.Style(self.root)
         self.style.configure("TLabel", font=('arial', 12), background=self.mainColor)
+        # self.style.theme_use('clam')
+        # self.style.configure("TCombobox", fieldbackground="orange", background="red", foreground='blue',
+        #                      selectbackground='black')
 
         # setting background image
         self.image = Image.open("Photos/background.png")
@@ -43,10 +46,10 @@ class Home:
         self.entries_gui()
 
         # Entries
-        self.generate_entries()
+        self.generate_inputs()
 
         # buttons
-        self.generate_buttons(self.predict_data, self.test_data)
+        self.generate_buttons(self.predict_data, self.test_data, self.train_data)
 
         # positions
         self.components_positions()
@@ -111,10 +114,11 @@ class Home:
     def user_data_values(self):
         self.methodologyValue = StringVar(value="none")
         self.genderValue = IntVar()
+        # Button(self.root, text="get text", command=lambda : print(self.genderValue.get())).pack()
         self.seniorCitizenValue = IntVar()
         self.partnerValue = IntVar()
         self.dependentsValue = IntVar()
-        self.tenureValue = IntVar()
+        self.tenureValue = DoubleVar()
         self.phoneServiceValue = IntVar()
         self.multipleLinesValue = IntVar()
         self.internetServiceValue = IntVar()
@@ -127,13 +131,13 @@ class Home:
         self.contractValue = IntVar()
         self.paperlessBillingValue = IntVar()
         self.paymentMethodValue = IntVar()
-        self.monthlyChargesValue = IntVar()
-        self.totalChargesValue = IntVar()
+        self.monthlyChargesValue = DoubleVar()
+        self.totalChargesValue = DoubleVar()
 
-    def generate_buttons(self, predict_data, test_data):
+    def generate_buttons(self, predict_data, test_data, train_data):
         self.train_button_back = PhotoImage(file="Photos/Buttons/trainButton.png")
         self.trainButton = Button(self.frame, image=self.train_button_back, borderwidth=0, cursor="hand2", bd=0,
-                                  background=self.mainColor)
+                                  background=self.mainColor, command=train_data)
         self.test_button_back = PhotoImage(file="Photos/Buttons/testButton.png")
         self.testButton = Button(self.frame, image=self.test_button_back, borderwidth=0, cursor="hand2", bd=0,
                                  background=self.mainColor, command=test_data)
@@ -195,10 +199,21 @@ class Home:
         self.predictButton.grid(row=12, columnspan=6)
         self.frame.place(anchor='center', relx=0.5, rely=0.5)
 
-    def generate_entries(self):
+    def action(self, event):
+        if self.genderEntry.get() == "Male":
+            self.genderValue.set(0)
+        elif self.genderEntry.get() == "Female":
+            self.genderValue.set(1)
+
+    def generate_inputs(self):
         self.genderEntry = Entry(self.frame, width=14, font=("arial", 14), bd=0, textvariable=self.genderValue,
                                  background=self.mainColor,
                                  foreground=self.foregroundColor)
+        # self.genderEntry = ttk.Combobox(self.frame, values=["Male", "Female"])
+        # self.genderEntry.current(0)
+        # self.genderEntry.bind("<<ComboboxSelected>>", self.action)
+        # self.genderEntry.pack()
+
         self.seniorCitizenEntry = Entry(self.frame, width=14, font=("arial", 14), bd=0,
                                         textvariable=self.seniorCitizenValue,
                                         background=self.mainColor, foreground=self.foregroundColor)
@@ -275,43 +290,54 @@ class Home:
         Label(self.frame, image=self.Entry_back, bg=self.mainColor).grid(row=10, column=3)
 
     def save_data_in_file(self):
-        row = [[random.randint(7043, 9000),
-                self.genderValue.get(),
-                self.seniorCitizenValue.get(),
-
-                self.partnerValue.get(),
-                self.dependentsValue.get(),
-                self.tenureValue.get(),
-
-                self.phoneServiceValue.get(),
-                self.multipleLinesValue.get(),
-                self.internetServiceValue.get(),
-
-                self.onlineSecurityValue.get(),
-                self.onlineBackupValue.get(),
-                self.deviceProtectionValue.get(),
-
-                self.techSupportValue.get(),
-                self.streamingTVValue.get(),
-                self.streamingMoviesValue.get(),
-
-                self.contractValue.get(),
-                self.paperlessBillingValue.get(),
-                self.paymentMethodValue.get(),
-
-                self.monthlyChargesValue.get(),
-                self.totalChargesValue.get()]]
-
-        # file = pathlib.Path("Data.csv")
-        with open("Data.csv", 'a') as file:
-            csvwriter = csv.writer(file)
-            csvwriter.writerows(row)
-        file.close()
-
-    def predict_data(self):
-        print("prd")
+        row = {
+            "gender": self.genderValue.get(),
+            'SeniorCitizen': self.seniorCitizenValue.get(),
+            'Partner': self.partnerValue.get(),
+            'Dependents': self.dependentsValue.get(),
+            'tenure': self.tenureValue.get(),
+            'PhoneService': self.phoneServiceValue.get(),
+            'MultipleLines': self.multipleLinesValue.get(),
+            'InternetService': self.internetServiceValue.get(),
+            'OnlineSecurity': self.onlineSecurityValue.get(),
+            'OnlineBackup': self.onlineBackupValue.get(),
+            'DeviceProtection': self.deviceProtectionValue.get(),
+            'TechSupport': self.techSupportValue.get(),
+            'StreamingTV': self.streamingTVValue.get(),
+            'StreamingMovies': self.streamingMoviesValue.get(),
+            'Contract': self.contractValue.get(),
+            'PaperlessBilling': self.paperlessBillingValue.get(),
+            'PaymentMethod': self.paymentMethodValue.get(),
+            'MonthlyCharges': self.monthlyChargesValue.get(),
+            'TotalCharges': self.totalChargesValue.get()}
+        # Save in new csv file
+        with open('model.csv', 'w') as csvfile:
+            fieldnames = ['gender', 'SeniorCitizen', 'Partner', 'Dependents', 'tenure', 'PhoneService',
+                          'MultipleLines', 'InternetService', 'OnlineSecurity', 'OnlineBackup', 'DeviceProtection',
+                          'TechSupport', 'StreamingTV', 'StreamingMovies', 'Contract', 'PaperlessBilling',
+                          'PaymentMethod', 'MonthlyCharges', 'TotalCharges']
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerow(row)
+        csvfile.close()
 
     def test_data(self):
         if self.methodologyValue.get() == "Logistic Regression":
-            LogisticRegressionClass.Sctatter_plot(self)
-            LogisticRegressionClass.train(self)
+            LogisticRegressionClass('test')
+        if self.methodologyValue.get() == "SVM":
+            SVMClass("test")
+
+    def train_data(self):
+        if self.methodologyValue.get() == "Logistic Regression":
+            LogisticRegressionClass('train')
+        if self.methodologyValue.get() == "SVM":
+            SVMClass("train")
+
+    def predict_data(self):
+        self.save_data_in_file()
+        if self.methodologyValue.get() == "Logistic Regression":
+            LogisticRegressionClass('predict')
+        if self.methodologyValue.get() == "SVM":
+            SVMClass("predict")
+
+Home()
