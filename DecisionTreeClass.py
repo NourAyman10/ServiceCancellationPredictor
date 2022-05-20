@@ -56,7 +56,7 @@ class DecisionTreeClass:
 
         # Accuracy for testing
         self.score = metrics.accuracy_score(self.DTy_test, y_pred=pred)
-        print("Accuracy Of SVM Model(Test) :", self.score)
+        print("Accuracy Of ID3 Model(Test) :", self.score)
         # -------------------------------------------------adding gui---------------------------------------------------
         # Positions the window in the center of the page.
         self.root.geometry("+{}+{}".format(self.positionRight - 200, self.positionDown))
@@ -82,7 +82,7 @@ class DecisionTreeClass:
         self.DTclf = estimator.fit(self.DTx_train, self.DTy_train)
         pred = self.DTclf.predict(self.DTx_test)
         self.score = metrics.accuracy_score(self.DTy_test, y_pred=pred)
-        print("Accuracy Of SVM Model(Train) :", self.score)
+        print("Accuracy Of ID3 Model(Train) :", self.score)
         # -------------------------------------------------adding gui---------------------------------------------------
         # Positions the window in the center of the page.
         self.root.geometry("+{}+{}".format(self.positionRight - 200, self.positionDown))

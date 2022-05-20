@@ -6,6 +6,7 @@ import csv
 
 from CARTClass import CARTClass
 from DecisionTreeClass import DecisionTreeClass
+from KNNClass import KNNClass
 from SVMClass import SVMClass
 from logisticRegressionClass import LogisticRegressionClass
 
@@ -23,9 +24,6 @@ class Home:
         # general style for all labels
         self.style = ttk.Style(self.root)
         self.style.configure("TLabel", font=('arial', 12), background=self.mainColor)
-        # self.style.theme_use('clam')
-        # self.style.configure("TCombobox", fieldbackground="orange", background="red", foreground='blue',
-        #                      selectbackground='black')
 
         # setting background image
         self.image = Image.open("Photos/background.png")
@@ -336,6 +334,8 @@ class Home:
             DecisionTreeClass('test')
         if self.methodologyValue.get() == "CART":
             CARTClass('test')
+        if self.methodologyValue.get() == "KNN":
+            KNNClass('test')
 
     def train_data(self):
         if self.methodologyValue.get() == "Logistic Regression":
@@ -346,6 +346,8 @@ class Home:
             CARTClass('train')
         if self.methodologyValue.get() == "ID3":
             DecisionTreeClass('train')
+        if self.methodologyValue.get() == "KNN":
+            KNNClass('train')
 
     def predict_data(self):
         self.save_data_in_file()
@@ -357,6 +359,8 @@ class Home:
             CARTClass('predict')
         if self.methodologyValue.get() == "ID3":
             DecisionTreeClass('predict')
+        if self.methodologyValue.get() == "KNN":
+            KNNClass('predict')
 
 
 Home()

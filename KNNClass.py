@@ -1,15 +1,17 @@
-from sklearn.model_selection import train_test_split
-from sklearn import tree
-from sklearn import metrics
 import joblib
+import numpy as np
 import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn import metrics
 from tkinter import *
+from tkinter import ttk
 
-class CARTClass:
+class KNNClass:
     def __init__(self, case):
-        self.treeData = pd.read_csv('Data.csv')
-        self.treeX = self.treeData.drop('Churn', axis=1)
-        self.treeY = self.treeData['Churn']
+        self.data = pd.read_csv('Data.csv')
+        self.X = self.data.drop('Churn', axis=1)
+        self.y = self.data['Churn']
 
         self.mainColor = "#522dbd"
         self.root = Tk()
@@ -37,16 +39,15 @@ class CARTClass:
 
 
     def test(self):
-        self.DTx_train, self.DTx_test, self.DTy_train, self.DTy_test = train_test_split(self.treeX, self.treeY, test_size=0.50, random_state=101)
-        self.clf = tree.DecisionTreeClassifier(criterion="entropy")
-        self.DTclf = self.clf.fit(self.DTx_train, self.DTy_train)
-        self.pred = self.DTclf.predict(self.DTx_test)
-        joblib.dump(self.DTclf, "cart_model.dt")
+        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=0.2, random_state=42)
+        self.classifier = KNeighborsClassifier(n_neighbors=7)
+        self.classifier.fit(self.X_train , self.y_train)
+        self.y_pred = self.classifier.predict(self.X_test)
+        joblib.dump(self.classifier, 'KNN_model.sav')
 
         # Accuracy for testing
-        pred = self.DTclf.predict(self.DTx_test)
-        self.score = metrics.accuracy_score(self.DTy_test, y_pred=pred)
-        print("Accuracy Of CART Model(Test) :", self.score)
+        self.score = metrics.accuracy_score(self.y_test ,self.y_pred)
+        print("Accuracy Of KNN Model(Test) :", self.score)
         # -------------------------------------------------adding gui---------------------------------------------------
         # Positions the window in the center of the page.
         self.root.geometry("+{}+{}".format(self.positionRight - 200, self.positionDown))
@@ -64,14 +65,11 @@ class CARTClass:
         close_button.pack()
 
     def train(self):
-        self.DTx_train, self.DTx_test, self.DTy_train, self.DTy_test = train_test_split(self.treeX, self.treeY, test_size=0.50, random_state=101)
-
-        self.clf = tree.DecisionTreeClassifier(criterion="entropy")
-        self.DTclf = self.clf.fit(self.DTx_train, self.DTy_train)
-
-        pred = self.DTclf.predict(self.DTx_test)
-        self.score = metrics.accuracy_score(self.DTy_train, y_pred=pred)
-        print("Accuracy Of CART Model(Train) :", self.score)
+        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size = 0.2, random_state=42)
+        self.classifier = KNeighborsClassifier(n_neighbors=7)
+        self.classifier.fit(self.X_train, self.y_train)
+        self.score = self.classifier.score(self.X_train, self.y_train)
+        print("Accuracy Of KNN Model(Train) :", self.score)
         # -------------------------------------------------adding gui---------------------------------------------------
         # Positions the window in the center of the page.
         self.root.geometry("+{}+{}".format(self.positionRight - 200, self.positionDown))
@@ -89,15 +87,14 @@ class CARTClass:
         close_button.pack()
 
     def predict(self):
-
         newData = pd.read_csv('model.csv')
         newData = newData[['gender', 'SeniorCitizen', 'Partner', 'Dependents', 'tenure', 'PhoneService',
                            'MultipleLines', 'InternetService', 'OnlineSecurity', 'OnlineBackup', 'DeviceProtection',
                            'TechSupport', 'StreamingTV', 'StreamingMovies', 'Contract', 'PaperlessBilling',
                            'PaymentMethod', 'MonthlyCharges', 'TotalCharges']]
         # load saved model
-        model = joblib.load('cart_model.dt')
-        predictions = model.predict(newData)
+        loaded = joblib.load('KNN_model.sav')
+        predictions = loaded.predict(newData)
         print(f"predictions = {predictions}")
         # -----------------------------------------------------adding gui-----------------------------------------------
         # Positions the window in the center of the page.
@@ -105,12 +102,12 @@ class CARTClass:
         frame = Frame(self.root, background=self.mainColor, pady=20)
         accuracyLabel = Label(frame, text="Predictions: ", background=self.mainColor,
                               font=('Comic Sans MS', 20, 'bold'), foreground="#57d7ff")
-        if predictions < 0.5:
-            accuracyValue = Label(frame, text="Customer will keep the service", background=self.mainColor,
+        if predictions[0] == 1:
+            accuracyValue = Label(frame, text="Customer Cancel Service", background=self.mainColor,
                                   font=('arial', 16, 'bold'),
                                   foreground="white")
-        elif predictions >= 0.5:
-            accuracyValue = Label(frame, text="Customer Cancel Service", background=self.mainColor,
+        elif predictions[0] == 0:
+            accuracyValue = Label(frame, text="Customer will keep the service", background=self.mainColor,
                                   font=('arial', 16, 'bold'),
                                   foreground="white")
         accuracyLabel.grid(row=0, column=0)

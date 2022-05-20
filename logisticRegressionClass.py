@@ -49,8 +49,7 @@ class LogisticRegressionClass:
 
     def test(self):
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.data_frame.drop('Churn', axis=1),
-                                                                                self.data_frame['Churn'],
-                                                                                test_size=0.30,
+                                                                                self.data_frame['Churn'],                                                          test_size=0.30,
                                                                                 random_state=101)
         self.model = LogisticRegression()
         self.model.fit(self.X_train, self.y_train)
