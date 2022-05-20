@@ -175,11 +175,11 @@ class LogisticRegressionClass:
         accuracyLabel = Label(frame, text="Predictions: ", background=self.mainColor,
                               font=('Comic Sans MS', 20, 'bold'), foreground="#57d7ff")
         if predictions[0] == 1:
-            accuracyValue = Label(frame, text="Customer Will Left", background=self.mainColor,
+            accuracyValue = Label(frame, text="Customer Cancel Service", background=self.mainColor,
                                   font=('arial', 16, 'bold'),
                                   foreground="white")
         elif predictions[0] == 0:
-            accuracyValue = Label(frame, text="Customer Will Stay", background=self.mainColor,
+            accuracyValue = Label(frame, text="Customer will keep the service", background=self.mainColor,
                                   font=('arial', 16, 'bold'),
                                   foreground="white")
         accuracyLabel.grid(row=0, column=0)

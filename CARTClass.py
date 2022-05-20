@@ -1,16 +1,15 @@
 from sklearn.model_selection import train_test_split
-from sklearn import svm
+from sklearn import tree
 from sklearn import metrics
 import joblib
 import pandas as pd
 from tkinter import *
-from tkinter import ttk
 
-class SVMClass:
+class CARTClass:
     def __init__(self, case):
-        self.data_frame = pd.read_csv('Data.csv')
-        self.x = self.data_frame.drop('Churn', axis=1)
-        self.y = self.data_frame['Churn']
+        self.treeData = pd.read_csv('Data.csv')
+        self.treeX = self.treeData.drop('Churn', axis=1)
+        self.treeY = self.treeData['Churn']
 
         self.mainColor = "#522dbd"
         self.root = Tk()
@@ -38,14 +37,15 @@ class SVMClass:
 
 
     def test(self):
-        self.x_train, self.x_test, self.y_train, self.y_test = train_test_split(self.x, self.y, test_size=0.20, random_state=200)
-        self.cls = svm.SVC(kernel="linear")
-        self.cls.fit(self.x_train, self.y_train)
-        self.cls.predict(self.x_test)
-        joblib.dump(self.cls, 'SVM_model.sav' )
+        self.DTx_train, self.DTx_test, self.DTy_train, self.DTy_test = train_test_split(self.treeX, self.treeY, test_size=0.50, random_state=101)
+        self.clf = tree.DecisionTreeClassifier(criterion="entropy")
+        self.DTclf = self.clf.fit(self.DTx_train, self.DTy_train)
+        self.pred = self.DTclf.predict(self.DTx_test)
+        joblib.dump(self.DTclf, "cart_model.dt")
 
         # Accuracy for testing
-        self.score = self.cls.score(self.x_test, self.y_test)
+        pred = self.DTclf.predict(self.DTx_test)
+        self.score = metrics.accuracy_score(self.DTy_test, y_pred=pred)
         print("Accuracy Of SVM Model(Test) :", self.score)
         # -------------------------------------------------adding gui---------------------------------------------------
         # Positions the window in the center of the page.
@@ -64,11 +64,13 @@ class SVMClass:
         close_button.pack()
 
     def train(self):
-        self.x_train, self.x_test, self.y_train, self.y_test = train_test_split(self.x, self.y, test_size=0.20, random_state=200)
+        self.DTx_train, self.DTx_test, self.DTy_train, self.DTy_test = train_test_split(self.treeX, self.treeY, test_size=0.50, random_state=101)
 
-        self.cls = svm.SVC(kernel="linear")
-        self.cls.fit(self.x_train, self.y_train)
-        self.score = self.cls.score(self.x_train, self.y_train)
+        self.clf = tree.DecisionTreeClassifier(criterion="entropy")
+        self.DTclf = self.clf.fit(self.DTx_train, self.DTy_train)
+
+        pred = self.DTclf.predict(self.DTx_test)
+        self.score = metrics.accuracy_score(self.DTy_test, y_pred=pred)
         print("Accuracy Of SVM Model(Train) :", self.score)
         # -------------------------------------------------adding gui---------------------------------------------------
         # Positions the window in the center of the page.
@@ -87,15 +89,15 @@ class SVMClass:
         close_button.pack()
 
     def predict(self):
+
         newData = pd.read_csv('model.csv')
         newData = newData[['gender', 'SeniorCitizen', 'Partner', 'Dependents', 'tenure', 'PhoneService',
                            'MultipleLines', 'InternetService', 'OnlineSecurity', 'OnlineBackup', 'DeviceProtection',
                            'TechSupport', 'StreamingTV', 'StreamingMovies', 'Contract', 'PaperlessBilling',
                            'PaymentMethod', 'MonthlyCharges', 'TotalCharges']]
         # load saved model
-
-        loaded_model = joblib.load('SVM_model.sav')
-        predictions = loaded_model.predict(newData)
+        model = joblib.load('cart_model.dt')
+        predictions = model.predict(newData)
         print(f"predictions = {predictions}")
         # -----------------------------------------------------adding gui-----------------------------------------------
         # Positions the window in the center of the page.
@@ -103,12 +105,12 @@ class SVMClass:
         frame = Frame(self.root, background=self.mainColor, pady=20)
         accuracyLabel = Label(frame, text="Predictions: ", background=self.mainColor,
                               font=('Comic Sans MS', 20, 'bold'), foreground="#57d7ff")
-        if predictions[0] == 1:
-            accuracyValue = Label(frame, text="Customer Cancel Service", background=self.mainColor,
+        if predictions < 0.5:
+            accuracyValue = Label(frame, text="Customer will keep the service", background=self.mainColor,
                                   font=('arial', 16, 'bold'),
                                   foreground="white")
-        elif predictions[0] == 0:
-            accuracyValue = Label(frame, text="Customer will keep the service", background=self.mainColor,
+        elif predictions >= 0.5:
+            accuracyValue = Label(frame, text="Customer Cancel Service", background=self.mainColor,
                                   font=('arial', 16, 'bold'),
                                   foreground="white")
         accuracyLabel.grid(row=0, column=0)

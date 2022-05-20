@@ -4,6 +4,8 @@ import pandas as pd
 from PIL import ImageTk, Image
 import csv
 
+from CARTClass import CARTClass
+from DecisionTreeClass import DecisionTreeClass
 from SVMClass import SVMClass
 from logisticRegressionClass import LogisticRegressionClass
 
@@ -104,6 +106,9 @@ class Home:
         self.SVMImage = PhotoImage(file="Photos/Labels/SVM.png")
         self.SVMRadioButton = Radiobutton(self.frame, variable=self.methodologyValue,
                                           value="SVM", background=self.mainColor, image=self.SVMImage)
+        self.CARTImage = PhotoImage(file="Photos/Labels/CART.png")
+        self.CARTRadioButton = Radiobutton(self.frame, variable=self.methodologyValue,
+                                           value="CART", background=self.mainColor, image=self.CARTImage)
         self.ID3Image = PhotoImage(file="Photos/Labels/ID3.png")
         self.ID3RadioButton = Radiobutton(self.frame, variable=self.methodologyValue,
                                           value="ID3", background=self.mainColor, image=self.ID3Image)
@@ -152,8 +157,9 @@ class Home:
     def components_positions(self):
         self.logisticRegressionRadioButton.grid(row=1, column=0)
         self.SVMRadioButton.grid(row=1, column=1)
-        self.ID3RadioButton.grid(row=1, column=2)
-        self.KNNRadioButton.grid(row=1, column=3)
+        self.CARTRadioButton.grid(row=1, column=2)
+        self.ID3RadioButton.grid(row=1, column=3)
+        self.KNNRadioButton.grid(row=1, column=4)
         self.closeButton.grid(row=1, column=6)
         self.trainButton.grid(row=2, column=2)
         self.testButton.grid(row=2, column=3)
@@ -326,12 +332,20 @@ class Home:
             LogisticRegressionClass('test')
         if self.methodologyValue.get() == "SVM":
             SVMClass("test")
+        if self.methodologyValue.get() == "ID3":
+            DecisionTreeClass('test')
+        if self.methodologyValue.get() == "CART":
+            CARTClass('test')
 
     def train_data(self):
         if self.methodologyValue.get() == "Logistic Regression":
             LogisticRegressionClass('train')
         if self.methodologyValue.get() == "SVM":
             SVMClass("train")
+        if self.methodologyValue.get() == "CART":
+            CARTClass('train')
+        if self.methodologyValue.get() == "ID3":
+            DecisionTreeClass('train')
 
     def predict_data(self):
         self.save_data_in_file()
@@ -339,5 +353,10 @@ class Home:
             LogisticRegressionClass('predict')
         if self.methodologyValue.get() == "SVM":
             SVMClass("predict")
+        if self.methodologyValue.get() == "CART":
+            CARTClass('predict')
+        if self.methodologyValue.get() == "ID3":
+            DecisionTreeClass('predict')
+
 
 Home()
