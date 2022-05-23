@@ -8,21 +8,30 @@ from tkinter import *
 class CARTClass:
     def __init__(self, case):
         self.treeData = pd.read_csv('Data.csv')
-        self.treeX = self.treeData.drop('Churn', axis=1)
-        self.treeY = self.treeData['Churn']
+        global treeX
+        treeX = self.treeData.drop('Churn', axis=1)
+        global treeY
+        treeY = self.treeData['Churn']
 
-        self.mainColor = "#522dbd"
-        self.root = Tk()
+        self.mainColor = "#191142"
+        self.root = Toplevel()
         self.root.title("Service cancellation predictor")
 
-        self.windowWidth = self.root.winfo_reqwidth()
-        self.windowHeight = self.root.winfo_reqheight()
-        # Gets both half the screen width/height and window width/height
-        self.positionRight = int(self.root.winfo_screenwidth() / 2 - self.windowWidth / 2)
-        self.positionDown = int(self.root.winfo_screenheight() / 2 - self.windowHeight / 2)
-
         self.root.configure(background=self.mainColor, padx=30, pady=30)
-        self.root.overrideredirect(1)
+        self.root.overrideredirect(True)
+
+        global image
+        image = PhotoImage(file="Photos/Buttons/closeButton.png")
+        self.close_button = Button(self.root, image=image, background=self.mainColor, bd=0, cursor="hand2",
+                                   activebackground=self.mainColor,
+                                   command=self.root.destroy)
+
+        global DTx_train, DTx_test, DTy_train, DTy_test, clf, DTclf
+        DTx_train, DTx_test, DTy_train, DTy_test = train_test_split(treeX, treeY, test_size=0.50, random_state=101)
+
+        clf = tree.DecisionTreeClassifier(criterion="entropy")
+        DTclf = clf.fit(DTx_train, DTy_train)
+
 
         match case:
             case 'test':
@@ -35,58 +44,55 @@ class CARTClass:
                 self.predict()
                 return
 
+    def center(self, win, window_width, window_height):
+        screen_width = win.winfo_screenwidth()
+        screen_height = win.winfo_screenheight()
+
+        x_coordinate = int((screen_width / 2) - (window_width / 2))
+        y_coordinate = int((screen_height / 2) - (window_height / 2))
+
+        win.geometry(f"{window_width}x{window_height}+{x_coordinate}+{y_coordinate}")
 
     def test(self):
-        self.DTx_train, self.DTx_test, self.DTy_train, self.DTy_test = train_test_split(self.treeX, self.treeY, test_size=0.50, random_state=101)
-        self.clf = tree.DecisionTreeClassifier(criterion="entropy")
-        self.DTclf = self.clf.fit(self.DTx_train, self.DTy_train)
-        self.pred = self.DTclf.predict(self.DTx_test)
-        joblib.dump(self.DTclf, "cart_model.dt")
+        pred = DTclf.predict(DTx_test)
+        joblib.dump(DTclf, "cart_model.dt")
 
-        # Accuracy for testing
-        pred = self.DTclf.predict(self.DTx_test)
-        self.score = metrics.accuracy_score(self.DTy_test, y_pred=pred)
-        print("Accuracy Of CART Model(Test) :", self.score)
+        score = metrics.accuracy_score(DTy_test, y_pred=pred)
+        print("Accuracy Of CART Model(Test) :", score)
         # -------------------------------------------------adding gui---------------------------------------------------
         # Positions the window in the center of the page.
-        self.root.geometry("+{}+{}".format(self.positionRight - 200, self.positionDown))
+        self.center(self.root, 700, 200)
         frame = Frame(self.root, background=self.mainColor, pady=20)
-        accuracyLabel = Label(frame, text="Accuracy Model for Test: ", background=self.mainColor,
-                              font=('Comic Sans MS', 20, 'bold'), foreground="#57d7ff")
-        accuracyValue = Label(frame, text=self.score, background=self.mainColor, font=('arial', 16, 'bold'),
+        global accuracyImage
+        accuracyImage = PhotoImage(file="Photos/Labels/testAccuracy.png")
+        accuracyLabel = Label(frame, image=accuracyImage, background=self.mainColor)
+        accuracyValue = Label(frame, text=score, background=self.mainColor, font=('arial', 16, 'bold'),
                               foreground="white")
         accuracyLabel.grid(row=0, column=0)
         accuracyValue.grid(row=0, column=1)
         frame.pack()
 
-        close_button = Button(self.root, text="Close", background="#251260", foreground="#a744ff", padx=100,
-                              font=('Comic Sans MS', 20, 'bold'), cursor="hand2", command=self.root.destroy)
-        close_button.pack()
+        self.close_button.pack()
 
     def train(self):
-        self.DTx_train, self.DTx_test, self.DTy_train, self.DTy_test = train_test_split(self.treeX, self.treeY, test_size=0.50, random_state=101)
-
-        self.clf = tree.DecisionTreeClassifier(criterion="entropy")
-        self.DTclf = self.clf.fit(self.DTx_train, self.DTy_train)
-
-        pred = self.DTclf.predict(self.DTx_test)
-        self.score = metrics.accuracy_score(self.DTy_train, y_pred=pred)
-        print("Accuracy Of CART Model(Train) :", self.score)
+        clf = tree.DecisionTreeClassifier(criterion="entropy")
+        clf.fit(DTx_train, DTy_train)
         # -------------------------------------------------adding gui---------------------------------------------------
         # Positions the window in the center of the page.
-        self.root.geometry("+{}+{}".format(self.positionRight - 200, self.positionDown))
+        self.center(self.root, 700, 200)
+
         frame = Frame(self.root, background=self.mainColor, pady=20)
-        accuracyLabel = Label(frame, text="Accuracy Model for Train: ", background=self.mainColor,
-                              font=('Comic Sans MS', 20, 'bold'), foreground="#57d7ff")
-        accuracyValue = Label(frame, text=self.score, background=self.mainColor, font=('arial', 16, 'bold'),
-                              foreground="white")
-        accuracyLabel.grid(row=0, column=0)
-        accuracyValue.grid(row=0, column=1)
+
+        global successImage
+        successImage = PhotoImage(file="Photos/Labels/CreatedSuccessfully.png")
+
+        value = Label(frame, text="Model Created Successfully", image=successImage, background=self.mainColor,
+                      font=('arial', 16, 'bold'),
+                      foreground="white")
+        value.grid(row=0, column=1)
         frame.pack()
 
-        close_button = Button(self.root, text="Close", background="#251260", foreground="#a744ff", padx=100,
-                              font=('Comic Sans MS', 20, 'bold'), cursor="hand2", command=self.root.destroy)
-        close_button.pack()
+        self.close_button.pack()
 
     def predict(self):
 
@@ -101,22 +107,17 @@ class CARTClass:
         print(f"predictions = {predictions}")
         # -----------------------------------------------------adding gui-----------------------------------------------
         # Positions the window in the center of the page.
-        self.root.geometry("+{}+{}".format(self.positionRight - 100, self.positionDown))
+        self.center(self.root, 700, 200)
         frame = Frame(self.root, background=self.mainColor, pady=20)
-        accuracyLabel = Label(frame, text="Predictions: ", background=self.mainColor,
-                              font=('Comic Sans MS', 20, 'bold'), foreground="#57d7ff")
+
+        global predictionsImage
         if predictions < 0.5:
-            accuracyValue = Label(frame, text="Customer will keep the service", background=self.mainColor,
-                                  font=('arial', 16, 'bold'),
-                                  foreground="white")
+            predictionsImage = PhotoImage(file="Photos/Labels/customerWillKeepService.png")
+            self.accuracyValue = Label(frame, image=predictionsImage, background=self.mainColor)
         elif predictions >= 0.5:
-            accuracyValue = Label(frame, text="Customer Cancel Service", background=self.mainColor,
-                                  font=('arial', 16, 'bold'),
-                                  foreground="white")
-        accuracyLabel.grid(row=0, column=0)
-        accuracyValue.grid(row=0, column=1)
+            predictionsImage = PhotoImage(file="Photos/Labels/customerCancelService.png")
+            self.accuracyValue = Label(frame, image=predictionsImage, background=self.mainColor)
+        self.accuracyValue.grid(row=0, column=1)
         frame.pack()
 
-        close_button = Button(self.root, text="Close", background="#251260", foreground="#a744ff", padx=100,
-                              font=('Comic Sans MS', 20, 'bold'), cursor="hand2", command=self.root.destroy)
-        close_button.pack()
+        self.close_button.pack()

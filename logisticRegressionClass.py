@@ -2,6 +2,7 @@
 import joblib
 import pandas as pd
 import matplotlib.pyplot as plt
+from PIL import ImageTk, Image
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 import seaborn as sns
@@ -14,19 +15,26 @@ class LogisticRegressionClass:
     def __init__(self, case):
         self.data_frame = pd.read_csv('Data.csv')
 
-        # **********************************************************************************************************************
-        self.mainColor = "#522dbd"
-        self.root = Tk()
+        self.mainColor = "#191142"
+        self.root = Toplevel()
         self.root.title("Service cancellation predictor")
 
-        self.windowWidth = self.root.winfo_reqwidth()
-        self.windowHeight = self.root.winfo_reqheight()
-        # Gets both half the screen width/height and window width/height
-        self.positionRight = int(self.root.winfo_screenwidth() / 2 - self.windowWidth / 2)
-        self.positionDown = int(self.root.winfo_screenheight() / 2 - self.windowHeight / 2)
-
         self.root.configure(background=self.mainColor, padx=30, pady=30)
-        self.root.overrideredirect(1)
+        self.root.overrideredirect(True)
+
+        global X_train, X_test, y_train, y_test, model
+        X_train, X_test, y_train, y_test = train_test_split(self.data_frame.drop('Churn', axis=1),
+                                                            self.data_frame['Churn'],
+                                                            test_size=0.30,
+                                                            random_state=101)
+        model = LogisticRegression()
+        model.fit(X_train, y_train)
+
+        global image
+        image = PhotoImage(file="Photos/Buttons/closeButton.png")
+        self.close_button = Button(self.root, image=image, background=self.mainColor, bd=0, cursor="hand2",
+                                   activebackground=self.mainColor,
+                                   command=self.root.destroy)
 
         match case:
             case 'test':
@@ -42,47 +50,48 @@ class LogisticRegressionClass:
 
         self.root.mainloop()
 
+    def center(self, win, window_width, window_height):
+        screen_width = win.winfo_screenwidth()
+        screen_height = win.winfo_screenheight()
+
+        x_coordinate = int((screen_width / 2) - (window_width / 2))
+        y_coordinate = int((screen_height / 2) - (window_height / 2))
+        win.geometry(f"{window_width}x{window_height}+{x_coordinate}+{y_coordinate}")
+
     # Visualize the data
     def scatter_plot(self):
         plt.scatter(self.data_frame.MonthlyCharges, self.data_frame.Churn, cmap="rainbow")
         plt.title("Scatter plot for Logistic Regression")
 
     def test(self):
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.data_frame.drop('Churn', axis=1),
-                                                                                self.data_frame['Churn'],                                                          test_size=0.30,
-                                                                                random_state=101)
-        self.model = LogisticRegression()
-        self.model.fit(self.X_train, self.y_train)
-        self.Y_prediction = self.model.predict(self.X_test)
-        joblib.dump(self.model, 'Logistic_Regression_Model.joblib')
+        Y_prediction = model.predict(X_test)
+        joblib.dump(model, 'Logistic_Regression_Model.joblib')
         # checking coeffiecent
-        print('coef:', self.model.coef_, end='\n\n')
+        print('coef:', model.coef_, end='\n\n')
         # checking intercept
-        print('intercept:', self.model.intercept_)
-        # save the model to disk
+        print('intercept:', model.intercept_)
 
         # Accuracy for testing
-        self.score = self.model.score(self.X_test, self.y_test)
+        score = metrics.accuracy_score(y_test, Y_prediction)
         # calculate confusion_matrix
-        print("Accuracy Of Logistic Regression Model(Test) :", self.score)
-        self.cm = metrics.confusion_matrix(self.y_test, self.Y_prediction)
+        print("Accuracy Of Logistic Regression Model(Test) :", score)
+        cm = metrics.confusion_matrix(y_test, Y_prediction)
         plt.figure(figsize=(9, 9))
-        sns.heatmap(self.cm, annot=True, fmt=".3f", linewidths=.5, square=True, cmap='Blues_r')
+        sns.heatmap(cm, annot=True, fmt=".3f", linewidths=.5, square=True, cmap='Blues_r')
         plt.ylabel('Actual label')
         plt.xlabel('Predicted label')
-        self.all_sample_title = 'Accuracy Score: {0}'.format(self.score)
-        plt.title(self.all_sample_title, size=15)
+        all_sample_title = 'Accuracy Score: {0}'.format(score)
+        plt.title(all_sample_title, size=15)
 
         # -----------------------------------------------------adding gui-----------------------------------------------
         # Positions the window in the center of the page.
-        self.root.geometry("+{}+{}".format(self.positionRight - 200, self.positionDown - 200))
+        self.center(self.root, 800, 600)
 
-        style = ttk.Style(self.root)
+        style = ttk.Style()
         style.theme_use('clam')
-        style.configure("Treeview.Heading", foreground='#a744ff', font=('Comic Sans MS', 20, 'bold'),
-                        background='#251260', borderwidth=0)
+        style.configure("Treeview.Heading", font=('Comic Sans MS', 20, 'bold'), background='#251260', borderwidth=0)
         style.configure("Treeview", background="#150941", font=('arial', 16), fieldbackground="#150941", rowheight=40,
-                        foreground='white')
+                        foreground='white', highlightthickness=0)
         style.map("Treeview", background=[('selected', '#251260')])
 
         tree_frame = Frame(self.root)
@@ -92,26 +101,31 @@ class LogisticRegressionClass:
         tree_scrollbar.pack(side=RIGHT, fill=Y)
 
         tv = ttk.Treeview(tree_frame, height=5, yscrollcommand=tree_scrollbar.set)
-        tv.heading("#0", text="Coefficients")
-        tv.column('#0', width=300, anchor='center', stretch=NO)
+        global imageHeading
+        imageHeading = PhotoImage(file="Photos/Labels/coefficient.png")
+        tv.heading("#0", image=imageHeading)
+        tv.column('#0', width=290, anchor='center', stretch=NO)
         tv.pack()
 
         tree_scrollbar.config(command=tv.yview)
 
         index = 0
-        for item in self.model.coef_[0]:
+        for item in model.coef_[0]:
             tv.insert('', 'end', f"item{index}", text=item)
             index += 1
 
         frame2 = Frame(self.root, background=self.mainColor)
-        interceptLabel = Label(frame2, text="Intercept: ", background=self.mainColor,
-                               font=('Comic Sans MS', 20, 'bold'), foreground="#57d7ff")
-        interceptValue = Label(frame2, text=self.model.intercept_[0], background=self.mainColor,
+
+        global interceptImage
+        interceptImage = PhotoImage(file="Photos/Labels/intercept.png")
+        interceptLabel = Label(frame2, text="Intercept: ", image=interceptImage, background=self.mainColor)
+        interceptValue = Label(frame2, text=model.intercept_[0], background=self.mainColor,
                                font=('arial', 16, 'bold'), foreground="white")
 
-        accuracyLabel = Label(frame2, text="Accuracy Model for Test: ", background=self.mainColor,
-                              font=('Comic Sans MS', 20, 'bold'), foreground="#57d7ff")
-        accuracyValue = Label(frame2, text=self.score, background=self.mainColor, font=('arial', 16, 'bold'),
+        global accuracyImage
+        accuracyImage = PhotoImage(file="Photos/Labels/testAccuracy.png")
+        accuracyLabel = Label(frame2, image=accuracyImage, background=self.mainColor)
+        accuracyValue = Label(frame2, text=score, background=self.mainColor, font=('arial', 16, 'bold'),
                               foreground="white")
 
         interceptLabel.grid(row=0, column=0)
@@ -120,42 +134,33 @@ class LogisticRegressionClass:
         accuracyValue.grid(row=1, column=1)
         frame2.pack()
 
-        Label(self.root, text=" ", pady=2, background=self.mainColor).pack()
-
-        showGraphBtn = Button(self.root, text="Show Graph", background="#251260", foreground="#a744ff", padx=80,
-                              font=('Comic Sans MS', 20, 'bold'), cursor="hand2", command=plt.show)
+        global showGraphImage
+        showGraphImage = PhotoImage(file="Photos/Buttons/showGraph.png")
+        showGraphBtn = Button(self.root, text="Show Graph", image=showGraphImage, background=self.mainColor, bd=0,
+                              activebackground=self.mainColor,
+                              cursor="hand2", command=plt.show)
         showGraphBtn.pack()
 
-        Label(self.root, text=" ", pady=2, background=self.mainColor).pack()
-
-        close_button = Button(self.root, text="Close", background="#251260", foreground="#a744ff", padx=100,
-                              font=('Comic Sans MS', 20, 'bold'), cursor="hand2", command=self.root.destroy)
-        close_button.pack()
+        self.close_button.pack()
 
     def train(self):
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.data_frame.drop('Churn', axis=1),
-                                                                                self.data_frame['Churn'],
-                                                                                test_size=0.30,
-                                                                                random_state=101)
-        self.model = LogisticRegression()
-        self.model.fit(self.X_train, self.y_train)
-        self.score = self.model.score(self.X_train, self.y_train)
-        print("Accuracy Of Logistic Regression Model(Train) :", self.score)
+        model = LogisticRegression()
+        model.fit(X_train, y_train)
         # -----------------------------------------------------adding gui-----------------------------------------------
         # Positions the window in the center of the page.
-        self.root.geometry("+{}+{}".format(self.positionRight - 200, self.positionDown))
+        self.center(self.root, 700, 200)
+
         frame = Frame(self.root, background=self.mainColor, pady=20)
-        accuracyLabel = Label(frame, text="Accuracy Model for Train: ", background=self.mainColor,
-                              font=('Comic Sans MS', 20, 'bold'), foreground="#57d7ff")
-        accuracyValue = Label(frame, text=self.score, background=self.mainColor, font=('arial', 16, 'bold'),
-                              foreground="white")
-        accuracyLabel.grid(row=0, column=0)
-        accuracyValue.grid(row=0, column=1)
+
+        global successImage
+        successImage = PhotoImage(file="Photos/Labels/CreatedSuccessfully.png")
+        value = Label(frame, image=successImage, background=self.mainColor,
+                      font=('arial', 16, 'bold'),
+                      foreground="white")
+        value.grid(row=0, column=1)
         frame.pack()
 
-        close_button = Button(self.root, text="Close", background="#251260", foreground="#a744ff", padx=100,
-                              font=('Comic Sans MS', 20, 'bold'), cursor="hand2", command=self.root.destroy)
-        close_button.pack()
+        self.close_button.pack()
 
     def predict(self):
         newData = pd.read_csv('model.csv')
@@ -169,22 +174,18 @@ class LogisticRegressionClass:
         print(f"predictions = {predictions}")
         # -----------------------------------------------------adding gui-----------------------------------------------
         # Positions the window in the center of the page.
-        self.root.geometry("+{}+{}".format(self.positionRight - 100, self.positionDown))
+        self.center(self.root, 700, 200)
+
         frame = Frame(self.root, background=self.mainColor, pady=20)
-        accuracyLabel = Label(frame, text="Predictions: ", background=self.mainColor,
-                              font=('Comic Sans MS', 20, 'bold'), foreground="#57d7ff")
+
+        global predictionsImage
         if predictions[0] == 1:
-            accuracyValue = Label(frame, text="Customer Cancel Service", background=self.mainColor,
-                                  font=('arial', 16, 'bold'),
-                                  foreground="white")
+            predictionsImage = PhotoImage(file="Photos/Labels/customerCancelService.png")
+            self.predictionsValue = Label(frame, image=predictionsImage, background=self.mainColor)
         elif predictions[0] == 0:
-            accuracyValue = Label(frame, text="Customer will keep the service", background=self.mainColor,
-                                  font=('arial', 16, 'bold'),
-                                  foreground="white")
-        accuracyLabel.grid(row=0, column=0)
-        accuracyValue.grid(row=0, column=1)
+            predictionsImage = PhotoImage(file="Photos/Labels/customerWillKeepService.png")
+            self.predictionsValue = Label(frame, image=predictionsImage, background=self.mainColor)
+        self.predictionsValue.grid(row=0, column=1)
         frame.pack()
 
-        close_button = Button(self.root, text="Close", background="#251260", foreground="#a744ff", padx=100,
-                              font=('Comic Sans MS', 20, 'bold'), cursor="hand2", command=self.root.destroy)
-        close_button.pack()
+        self.close_button.pack()

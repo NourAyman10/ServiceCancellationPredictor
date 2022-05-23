@@ -12,18 +12,24 @@ class SVMClass:
         self.x = self.data_frame.drop('Churn', axis=1)
         self.y = self.data_frame['Churn']
 
-        self.mainColor = "#522dbd"
-        self.root = Tk()
+        self.mainColor = "#191142"
+        self.root = Toplevel()
         self.root.title("Service cancellation predictor")
 
-        self.windowWidth = self.root.winfo_reqwidth()
-        self.windowHeight = self.root.winfo_reqheight()
-        # Gets both half the screen width/height and window width/height
-        self.positionRight = int(self.root.winfo_screenwidth() / 2 - self.windowWidth / 2)
-        self.positionDown = int(self.root.winfo_screenheight() / 2 - self.windowHeight / 2)
-
         self.root.configure(background=self.mainColor, padx=30, pady=30)
-        self.root.overrideredirect(1)
+        self.root.overrideredirect(True)
+
+        global image
+        image = PhotoImage(file="Photos/Buttons/closeButton.png")
+        self.close_button = Button(self.root, image=image, background=self.mainColor, bd=0, cursor="hand2",
+                                   activebackground=self.mainColor,
+                                   command=self.root.destroy)
+
+        global x_train, x_test, y_train, y_test, cls
+        x_train, x_test, y_train, y_test = train_test_split(self.x, self.y, test_size=0.20, random_state=200)
+        cls = svm.SVC(kernel="linear")
+        cls.fit(x_train, y_train)
+
 
         match case:
             case 'test':
@@ -37,54 +43,57 @@ class SVMClass:
                 return
 
 
+    def center(self, win, window_width, window_height):
+        screen_width = win.winfo_screenwidth()
+        screen_height = win.winfo_screenheight()
+
+        x_coordinate = int((screen_width / 2) - (window_width / 2))
+        y_coordinate = int((screen_height / 2) - (window_height / 2))
+        win.geometry(f"{window_width}x{window_height}+{x_coordinate}+{y_coordinate}")
+
     def test(self):
-        self.x_train, self.x_test, self.y_train, self.y_test = train_test_split(self.x, self.y, test_size=0.20, random_state=200)
-        self.cls = svm.SVC(kernel="linear")
-        self.cls.fit(self.x_train, self.y_train)
-        self.cls.predict(self.x_test)
-        joblib.dump(self.cls, 'SVM_model.sav' )
+        y_predict = cls.predict(x_test)
+        joblib.dump(cls, 'SVM_model.sav')
 
         # Accuracy for testing
-        self.score = self.cls.score(self.x_test, self.y_test)
-        print("Accuracy Of SVM Model(Test) :", self.score)
+        score = metrics.accuracy_score(y_test, y_predict)
+        print("Accuracy Of SVM Model(Test) :", score)
         # -------------------------------------------------adding gui---------------------------------------------------
         # Positions the window in the center of the page.
-        self.root.geometry("+{}+{}".format(self.positionRight - 200, self.positionDown))
+        self.center(self.root, 700, 200)
+
         frame = Frame(self.root, background=self.mainColor, pady=20)
-        accuracyLabel = Label(frame, text="Accuracy Model for Test: ", background=self.mainColor,
-                              font=('Comic Sans MS', 20, 'bold'), foreground="#57d7ff")
-        accuracyValue = Label(frame, text=self.score, background=self.mainColor, font=('arial', 16, 'bold'),
+
+        global accuracyImage
+        accuracyImage = PhotoImage(file="Photos/Labels/testAccuracy.png")
+        accuracyLabel = Label(frame, text="Accuracy Model for Test: ",image=accuracyImage, background=self.mainColor)
+        accuracyValue = Label(frame, text=score, background=self.mainColor, font=('arial', 16, 'bold'),
                               foreground="white")
         accuracyLabel.grid(row=0, column=0)
         accuracyValue.grid(row=0, column=1)
         frame.pack()
 
-        close_button = Button(self.root, text="Close", background="#251260", foreground="#a744ff", padx=100,
-                              font=('Comic Sans MS', 20, 'bold'), cursor="hand2", command=self.root.destroy)
-        close_button.pack()
+        self.close_button.pack()
 
     def train(self):
-        self.x_train, self.x_test, self.y_train, self.y_test = train_test_split(self.x, self.y, test_size=0.20, random_state=200)
-
-        self.cls = svm.SVC(kernel="linear")
-        self.cls.fit(self.x_train, self.y_train)
-        self.score = self.cls.score(self.x_train, self.y_train)
-        print("Accuracy Of SVM Model(Train) :", self.score)
+        cls = svm.SVC(kernel="linear")
+        cls.fit(x_train, y_train)
         # -------------------------------------------------adding gui---------------------------------------------------
         # Positions the window in the center of the page.
-        self.root.geometry("+{}+{}".format(self.positionRight - 200, self.positionDown))
+        self.center(self.root, 700, 200)
+
         frame = Frame(self.root, background=self.mainColor, pady=20)
-        accuracyLabel = Label(frame, text="Accuracy Model for Train: ", background=self.mainColor,
-                              font=('Comic Sans MS', 20, 'bold'), foreground="#57d7ff")
-        accuracyValue = Label(frame, text=self.score, background=self.mainColor, font=('arial', 16, 'bold'),
-                              foreground="white")
-        accuracyLabel.grid(row=0, column=0)
-        accuracyValue.grid(row=0, column=1)
+
+        global successImage
+        successImage = PhotoImage(file="Photos/Labels/CreatedSuccessfully.png")
+
+        value = Label(frame, text="Model Created Successfully", image=successImage, background=self.mainColor,
+                      font=('arial', 16, 'bold'),
+                      foreground="white")
+        value.grid(row=0, column=1)
         frame.pack()
 
-        close_button = Button(self.root, text="Close", background="#251260", foreground="#a744ff", padx=100,
-                              font=('Comic Sans MS', 20, 'bold'), cursor="hand2", command=self.root.destroy)
-        close_button.pack()
+        self.close_button.pack()
 
     def predict(self):
         newData = pd.read_csv('model.csv')
@@ -99,22 +108,18 @@ class SVMClass:
         print(f"predictions = {predictions}")
         # -----------------------------------------------------adding gui-----------------------------------------------
         # Positions the window in the center of the page.
-        self.root.geometry("+{}+{}".format(self.positionRight - 100, self.positionDown))
+        self.center(self.root, 700, 200)
+
         frame = Frame(self.root, background=self.mainColor, pady=20)
-        accuracyLabel = Label(frame, text="Predictions: ", background=self.mainColor,
-                              font=('Comic Sans MS', 20, 'bold'), foreground="#57d7ff")
+
+        global predictionsImage
         if predictions[0] == 1:
-            accuracyValue = Label(frame, text="Customer Cancel Service", background=self.mainColor,
-                                  font=('arial', 16, 'bold'),
-                                  foreground="white")
+            predictionsImage = PhotoImage(file="Photos/Labels/customerCancelService.png")
+            self.predictionsValue = Label(frame, image=predictionsImage, background=self.mainColor)
         elif predictions[0] == 0:
-            accuracyValue = Label(frame, text="Customer will keep the service", background=self.mainColor,
-                                  font=('arial', 16, 'bold'),
-                                  foreground="white")
-        accuracyLabel.grid(row=0, column=0)
-        accuracyValue.grid(row=0, column=1)
+            predictionsImage = PhotoImage(file="Photos/Labels/customerWillKeepService.png")
+            self.predictionsValue = Label(frame, image=predictionsImage, background=self.mainColor)
+        self.predictionsValue.grid(row=0, column=1)
         frame.pack()
 
-        close_button = Button(self.root, text="Close", background="#251260", foreground="#a744ff", padx=100,
-                              font=('Comic Sans MS', 20, 'bold'), cursor="hand2", command=self.root.destroy)
-        close_button.pack()
+        self.close_button.pack()

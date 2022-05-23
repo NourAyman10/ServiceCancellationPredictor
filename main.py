@@ -42,7 +42,7 @@ class Screen:
         self.root.mainloop()
 
     def animation(self):
-        gif = Image.open("Photos/gif1.gif")
+        gif = Image.open("Photos/splashScreen.gif")
         self.no_of_frames = gif.n_frames
 
         for i in range(self.no_of_frames):
@@ -64,9 +64,9 @@ class Screen:
         count += 1
         if count == len(self.images) - 1:
             count = 0
-        if (time.time() - self.start) <= 15:
-            self.x = self.root.after(15, self.show_animation, count)
-        elif (time.time() - self.start) > 15:
+        if (time.time() - self.start) <= 10:
+            self.x = self.root.after(13, self.show_animation, count)
+        elif (time.time() - self.start) > 10:
             self.root.destroy()
             shutil.rmtree('gif_frames')
             Home()
