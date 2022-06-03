@@ -51,4 +51,12 @@ Models consumed clean data which led to high accuracy:
 ![test model](https://github.com/NourAyman10/ServiceCancellationPredictor/blob/master/test_accuracy.png)
 ![test logistic regression model](https://github.com/NourAyman10/ServiceCancellationPredictor/blob/master/test_accuracy_logisticReg.png)
 ![show graphs](https://github.com/NourAyman10/ServiceCancellationPredictor/blob/master/showGraphs.png)  
-  
+ 
+## Contributors
+- [Mohamed-Samy26](https://github.com/Mohamed-Samy26) 
+- [RedBiscuits](https://github.com/RedBiscuits)
+- [KareemHussen](https://github.com/KareemHussen)
+- [NourAyman10](https://github.com/NourAyman10)
+- [HaneenIbrahim2](https://github.com/HaneenIbrahim2)
+- [OmarSherif2](https://github.com/OmarSherif2)
+- [Abdelrhman-Sayed70](https://github.com/Abdelrhman-Sayed70) 
