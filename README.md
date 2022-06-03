@@ -35,7 +35,7 @@ Models consumed clean data which led to high accuracy:
 
 ### Main Screen
 #### Empty with no data
-![empty inputs](https://github.com/NourAyman10/ServiceCancellationPredictor/blob/master/noData.png | width=80px) 
+![empty inputs](https://github.com/NourAyman10/ServiceCancellationPredictor/blob/master/noData.png) 
 ![inputs validation](https://github.com/NourAyman10/ServiceCancellationPredictor/blob/master/dataValidation.png)
 ![methodology validation](https://github.com/NourAyman10/ServiceCancellationPredictor/blob/master/noMethodology.png)
 #### All data filled
